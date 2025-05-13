@@ -80,5 +80,19 @@ class ProductServiceTest {
                 .isInstanceOf(ProductException.NotFoundException.class);
     }
 
+    @Test
+    @DisplayName("가격 조회 성공")
+    void getProductPrice_success() {
+        // given
+        Product product = Product.create("Jordan 1", "Nike", Money.wons(200_000),
+                LocalDate.of(2024, 1, 1), "image.jpg", "best seller");
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+
+        // when
+        Money price = productService.getPrice(1L);
+
+        // then
+        assertThat(price).isEqualTo(Money.wons(200_000));
+    }
 
 }

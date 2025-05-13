@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.product;
 
+import kr.hhplus.be.server.common.vo.Money;
 import kr.hhplus.be.server.domain.product.Product;
 
 import java.util.List;
@@ -26,5 +27,9 @@ public interface ProductUseCase {
      */
     Product findProduct(Long productId); // Info 생성을 위한 raw entity
 
-    public List<Product> findProductsByIds(List<Long> productIds);
+    List<Product> findProductsByIds(List<Long> productIds);
+
+    Money getPrice(Long productId);
+
+
 }

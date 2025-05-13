@@ -2,9 +2,6 @@ package kr.hhplus.be.server.application.payment;
 
 import kr.hhplus.be.server.application.balance.BalanceService;
 import kr.hhplus.be.server.application.balance.DecreaseBalanceCommand;
-import kr.hhplus.be.server.application.order.PaymentCompletedEvent;
-import kr.hhplus.be.server.common.lock.AopForTransaction;
-import kr.hhplus.be.server.common.lock.DistributedLockExecutor;
 import kr.hhplus.be.server.common.vo.Money;
 import kr.hhplus.be.server.domain.payment.Payment;
 import org.junit.jupiter.api.BeforeEach;

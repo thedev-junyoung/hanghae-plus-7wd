@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.product;
 
+import kr.hhplus.be.server.common.vo.Money;
 import kr.hhplus.be.server.domain.product.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -73,6 +74,14 @@ public class ProductService implements ProductUseCase {
     @Override
     public List<Product> findProductsByIds(List<Long> productIds) {
         return productRepository.findAllById(productIds);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Money getPrice(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductException.NotFoundException(productId));
+        return Money.wons(product.getPrice());
     }
 }
 
