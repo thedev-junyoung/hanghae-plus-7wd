@@ -1,12 +1,10 @@
 package kr.hhplus.be.server.application.productstatistics;
 
 import kr.hhplus.be.server.application.productstatistics.strategy.ProductRankingStrategy;
-import kr.hhplus.be.server.infrastructure.redis.ProductRankRedisRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor

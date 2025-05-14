@@ -1,3 +1,10 @@
 package kr.hhplus.be.server.application.productstatistics;
 
-public record RecordProductSalesEvent(String orderId) {}
+import java.util.List;
+
+public record RecordProductSalesEvent(
+        String orderId,
+        List<ProductQuantity> items
+) {
+    public record ProductQuantity(long productId, int quantity) {}
+}
