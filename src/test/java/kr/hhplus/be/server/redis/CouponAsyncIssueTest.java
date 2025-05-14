@@ -69,10 +69,10 @@ class CouponAsyncIssueTest {
         latch.await();
         long end = System.currentTimeMillis();
 
-        log.info("✅ 전체 요청 완료 시간: {} ms", end - start);
-        log.info("✅ 쿠폰 발급 수 (Set size): {}", redisTemplate.opsForSet().size(SET_KEY));
-        log.info("✅ 쿠폰 랭킹 수 (ZSet size): {}", redisTemplate.opsForZSet().zCard(RANK_KEY));
-        log.info("✅ 이벤트 기록 수 (Stream): {}", redisTemplate.opsForStream().size(String.valueOf(StreamOffset.fromStart(STREAM_KEY))));
+        log.info("전체 요청 완료 시간: {} ms", end - start);
+        log.info("쿠폰 발급 수 (Set size): {}", redisTemplate.opsForSet().size(SET_KEY));
+        log.info("쿠폰 랭킹 수 (ZSet size): {}", redisTemplate.opsForZSet().zCard(RANK_KEY));
+        log.info("이벤트 기록 수 (Stream): {}", redisTemplate.opsForStream().size(String.valueOf(StreamOffset.fromStart(STREAM_KEY))));
 
         executor.shutdown();
     }

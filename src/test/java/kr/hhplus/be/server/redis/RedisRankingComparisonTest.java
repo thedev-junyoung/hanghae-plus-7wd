@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.redis;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,6 +14,7 @@ import java.util.concurrent.*;
 
 @SpringBootTest
 @Slf4j
+@Tag("benchmark") // 👈 태그 추가
 class RedisRankingComparisonTest {
 
     @Autowired
@@ -46,8 +48,8 @@ class RedisRankingComparisonTest {
             zSetOps.incrementScore(ZSET_DIRECT_KEY, productId, 1);
         }
         long endDirect = System.currentTimeMillis();
-        log.info("🔵 단순 ZINCRBY 처리 시간: {} ms", (endDirect - startDirect));
-        log.info("🔵 초당 처리량: {} ops/sec", MESSAGE_COUNT / ((endDirect - startDirect) / 1000.0));
+        log.info("단순 ZINCRBY 처리 시간: {} ms", (endDirect - startDirect));
+        log.info("초당 처리량: {} ops/sec", MESSAGE_COUNT / ((endDirect - startDirect) / 1000.0));
         log.info("--------------------------------");
         // 2. Stream 적재
         random = new Random();
@@ -57,7 +59,7 @@ class RedisRankingComparisonTest {
             streamOps.add(MapRecord.create(STREAM_KEY, Map.of("productId", productId)));
         }
         long streamWriteEnd = System.currentTimeMillis();
-        log.info("🟡 Stream XADD 처리 시간: {} ms", (streamWriteEnd - streamWriteStart));
+        log.info("Stream XADD 처리 시간: {} ms", (streamWriteEnd - streamWriteStart));
 
         // 3. 병렬 Consumer (Stream 단건 처리)
         ExecutorService executor = Executors.newFixedThreadPool(CONSUMER_COUNT);
@@ -83,8 +85,8 @@ class RedisRankingComparisonTest {
 
         latch1.await();
         long streamConsumeEnd = System.currentTimeMillis();
-        log.info("🟡 Stream 처리 시간 (Consumer): {} ms", (streamConsumeEnd - streamConsumeStart));
-        log.info("🟡 초당 처리량 (XADD + Consumer): {} ops/sec",
+        log.info("Stream 처리 시간 (Consumer): {} ms", (streamConsumeEnd - streamConsumeStart));
+        log.info("초당 처리량 (XADD + Consumer): {} ops/sec",
                 MESSAGE_COUNT / ((streamConsumeEnd - streamWriteStart) / 1000.0));
         log.info("--------------------------------");
         // 4. 병렬 Consumer (배치 처리)
@@ -119,8 +121,8 @@ class RedisRankingComparisonTest {
 
         latch2.await();
         long batchEnd = System.currentTimeMillis();
-        log.info("🟢 Stream-Batch 처리 시간: {} ms", (batchEnd - batchStart));
-        log.info("🟢 초당 처리량 (XADD + Batch Consumer): {} ops/sec",
+        log.info("Stream-Batch 처리 시간: {} ms", (batchEnd - batchStart));
+        log.info("초당 처리량 (XADD + Batch Consumer): {} ops/sec",
                 MESSAGE_COUNT / ((batchEnd - streamWriteStart) / 1000.0));
 
         executor.shutdown();

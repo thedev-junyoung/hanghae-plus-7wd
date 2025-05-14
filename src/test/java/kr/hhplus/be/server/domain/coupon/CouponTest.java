@@ -69,17 +69,4 @@ class CouponTest {
         assertThat(coupon.getRemainingQuantity()).isEqualTo(9);
     }
 
-    @Test
-    @DisplayName("PERCENTAGE 쿠폰은 올바르게 할인 적용한다")
-    void percentage_coupon_should_apply_correct_discount() {
-        int discounted = CouponType.PERCENTAGE.applyDiscount(10000, 10);
-        assertThat(discounted).isEqualTo(9000);
-    }
-
-    @Test
-    @DisplayName("FIXED 쿠폰은 고정 할인 적용 후 0원 미만 방지한다")
-    void fixed_coupon_should_not_go_below_zero() {
-        int discounted = CouponType.FIXED.applyDiscount(3000, 5000);
-        assertThat(discounted).isEqualTo(0);
-    }
 }

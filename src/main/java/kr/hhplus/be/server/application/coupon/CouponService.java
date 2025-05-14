@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.coupon;
 
+import kr.hhplus.be.server.application.order.ApplyDiscountCommand;
 import kr.hhplus.be.server.application.order.CreateOrderCommand;
 import kr.hhplus.be.server.common.lock.AopForTransaction;
 import kr.hhplus.be.server.common.lock.DistributedLock;
@@ -77,8 +78,8 @@ public class CouponService implements CouponUseCase {
         return ApplyCouponResult.from(coupon, discount);
     }
 
-    public Money calculateDiscountedTotal(CreateOrderCommand command, List<OrderItem> items) {
-        Money total = items.stream()
+    public Money calculateDiscountedTotal(ApplyDiscountCommand command) {
+        Money total = command.orderItems().stream()
                 .map(OrderItem::calculateTotal)
                 .reduce(Money.ZERO, Money::add);
 
@@ -91,9 +92,8 @@ public class CouponService implements CouponUseCase {
         CouponIssue issue = couponIssueRepository.findByUserIdAndCouponId(command.userId(), coupon.getId())
                 .orElseThrow(() -> new CouponException.NotIssuedException(command.userId(), command.couponCode()));
 
-        coupon.validateUsable(clock);
-
-        Money discount = issue.getCoupon().calculateDiscount(total);
+        issue.validateUsable(clock);
+        Money discount = issue.calculateDiscount(total);
         return total.subtract(discount);
     }
 

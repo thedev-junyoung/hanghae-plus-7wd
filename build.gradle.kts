@@ -72,7 +72,11 @@ dependencies {
 }
 
 tasks.withType<Test> {
-	useJUnitPlatform()
+	useJUnitPlatform{
+		excludeTags("benchmark")
+	}
 	systemProperty("user.timezone", "UTC")
 	systemProperty("spring.profiles.active", "test")
+
+
 }

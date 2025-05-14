@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.domain.coupon;
 
 import jakarta.persistence.*;
+import kr.hhplus.be.server.common.vo.Money;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -66,5 +67,12 @@ public class CouponIssue {
         this.isUsed = true;
     }
 
+
+    public Money calculateDiscount(Money orderAmount) {
+        return coupon.calculateDiscount(orderAmount); // 할인 정책 위임
+    }
+    public void validateUsable(Clock clock) {
+        coupon.validateUsable(clock); // 쿠폰 유효성 체크
+    }
 
 }
