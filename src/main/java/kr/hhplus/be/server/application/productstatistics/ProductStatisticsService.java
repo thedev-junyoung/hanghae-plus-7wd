@@ -24,7 +24,7 @@ public class ProductStatisticsService implements ProductStatisticsUseCase {
     @Override
     public void record(RecordSalesCommand command) {
         // Redis만 기록
-        productRankingService.recordRanking(command.productId(), command.quantity());
+        productRankingService.record(command.productId(), command.quantity());
     }
 
     @Override

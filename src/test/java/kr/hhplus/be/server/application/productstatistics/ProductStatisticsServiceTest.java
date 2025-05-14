@@ -45,7 +45,7 @@ class ProductStatisticsServiceTest {
         service.record(new RecordSalesCommand(productId, quantity, unitAmount));
 
         // then
-        verify(productRankingService).recordRanking(productId, quantity);
+        verify(productRankingService).record(productId, quantity);
     }
 
     @Test

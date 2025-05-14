@@ -22,7 +22,7 @@ class ProductRankingServiceTest {
     @Test
     @DisplayName("상품 판매 수량만큼 점수 증가")
     void recordRanking_shouldIncreaseScore() {
-        rankingService.recordRanking(1L, 3);
+        rankingService.record(1L, 3);
         verify(redisRepository).incrementScore("ranking:daily", 1L, 3);
     }
 }
