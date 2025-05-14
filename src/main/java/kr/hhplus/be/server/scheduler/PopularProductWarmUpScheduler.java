@@ -1,5 +1,7 @@
-package kr.hhplus.be.server.application.product;
+package kr.hhplus.be.server.scheduler;
 
+import kr.hhplus.be.server.application.product.PopularProductCriteria;
+import kr.hhplus.be.server.application.product.ProductFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
