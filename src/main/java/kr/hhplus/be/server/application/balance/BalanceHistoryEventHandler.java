@@ -1,7 +1,5 @@
 package kr.hhplus.be.server.application.balance;
 
-import kr.hhplus.be.server.domain.balance.BalanceHistory;
-import kr.hhplus.be.server.domain.balance.BalanceHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;

@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.application.productstatistics;
 
-import kr.hhplus.be.server.application.order.OrderConfirmRequestedEvent;
 import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderException;
 import kr.hhplus.be.server.domain.order.OrderItem;
