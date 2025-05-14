@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
@@ -17,19 +18,18 @@ import java.util.List;
 public class ProductStatisticsService implements ProductStatisticsUseCase {
 
     private final ProductStatisticsRepository repository;
+    private final ProductRankingService productRankingService;
+    private final Clock clock; // 추가
 
     @Override
     public void record(RecordSalesCommand command) {
-        LocalDate today = LocalDate.now();
-        ProductStatistics stats = repository.findByProductIdAndStatDate(command.productId(), today)
-                .orElseGet(() -> ProductStatistics.create(command.productId(), today));
-        stats.addSales(command.quantity(), Money.wons(command.amount()));
-        repository.save(stats);
+        // Redis만 기록
+        productRankingService.recordRanking(command.productId(), command.quantity());
     }
 
     @Override
     public List<ProductSalesInfo> getTopSellingProducts(PopularProductCriteria criteria) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(clock); // 고정 가능한 now()
         LocalDate from = today.minusDays(criteria.days());
         int limit = criteria.limit();
 

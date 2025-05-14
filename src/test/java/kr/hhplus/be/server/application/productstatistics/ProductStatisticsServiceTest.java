@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.productstatistics;
 
+import kr.hhplus.be.server.application.product.PopularProductCriteria;
 import kr.hhplus.be.server.domain.productstatistics.ProductStatistics;
 import kr.hhplus.be.server.domain.productstatistics.ProductStatisticsRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -9,7 +10,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -20,52 +23,49 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ProductStatisticsServiceTest {
 
+
     @Mock
     ProductStatisticsRepository repository;
+
+    @Mock
+    ProductRankingService productRankingService;
 
     @InjectMocks
     ProductStatisticsService service;
 
     @Test
-    @DisplayName("오늘자 통계가 존재하지 않으면 새로 생성 후 저장한다")
-    void record_createsNewStatsIfNotExist() {
+    @DisplayName("상품 판매 기록 시 Redis에 저장된다")
+    void record_callsRedisRepository() {
         // given
         Long productId = 1L;
         int quantity = 3;
-        long amount = 10000;
-        LocalDate today = LocalDate.now();
-
-        when(repository.findByProductIdAndStatDate(productId, today)).thenReturn(Optional.empty());
+        long unitAmount = 10000;
 
         // when
-        service.record(new RecordSalesCommand(productId, quantity, amount));
+        service.record(new RecordSalesCommand(productId, quantity, unitAmount));
 
         // then
-        verify(repository).save(argThat(stats ->
-                stats.getProductId().equals(productId) &&
-                        stats.getSalesCount() == quantity &&
-                        stats.getSalesAmount() == amount * quantity
-        ));
+        verify(productRankingService).recordRanking(productId, quantity);
     }
 
     @Test
-    @DisplayName("오늘자 통계가 존재하면 누적 후 저장한다")
-    void record_updatesExistingStats() {
+    @DisplayName("인기 상품 조회 시 성공")
+    void getTopSellingProducts_success() {
         // given
-        Long productId = 1L;
-        int quantity = 2;
-        long amount = 5000;
-        LocalDate today = LocalDate.now();
+        int days = 3;
+        int limit = 5;
+        LocalDate fixedToday = LocalDate.of(2020, 1, 4);
+        Clock fixedClock = Clock.fixed(fixedToday.atStartOfDay(ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
 
-        ProductStatistics existing = ProductStatistics.create(productId, today);
-        when(repository.findByProductIdAndStatDate(productId, today)).thenReturn(Optional.of(existing));
+        service = new ProductStatisticsService(repository, productRankingService, fixedClock);
+
+        PopularProductCriteria criteria = new PopularProductCriteria(days, limit);
 
         // when
-        service.record(new RecordSalesCommand(productId, quantity, amount));
+        service.getTopSellingProducts(criteria);
 
         // then
-        assertThat(existing.getSalesCount()).isEqualTo(quantity);
-        assertThat(existing.getSalesAmount()).isEqualTo(quantity * amount);
-        verify(repository).save(existing);
+        LocalDate expectedFrom = fixedToday.minusDays(days);
+        verify(repository).findTopSellingProducts(expectedFrom, fixedToday, limit);
     }
 }

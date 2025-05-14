@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.common.scheduler;
+package kr.hhplus.be.server.scheduler;
 
 import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.CouponRepository;
@@ -8,7 +8,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.Clock;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**

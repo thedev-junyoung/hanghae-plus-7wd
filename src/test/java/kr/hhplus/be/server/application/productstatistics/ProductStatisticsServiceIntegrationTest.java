@@ -28,52 +28,6 @@ class ProductStatisticsServiceIntegrationTest {
     @Autowired
     ProductStatisticsRepository repository;
 
-    @Test
-    @DisplayName("오늘자 통계가 없을 경우 새로 생성되어 저장된다")
-    void record_createsNewStatistics() {
-        // given
-        Long productId = 10L; // 실제 존재하는 제품 ID (예: Reebok Classic Leather)
-        LocalDate today = LocalDate.now();
-        int quantity = 2;
-        long unitAmount = 10000L;
-
-        // 🧹 기존 통계가 있으면 삭제
-        repository.findByProductIdAndStatDate(productId, today)
-                .ifPresent(stat -> repository.delete(stat));
-
-        // when
-        service.record(new RecordSalesCommand(productId, quantity, unitAmount));
-
-        // then
-        ProductStatistics stats = repository.findByProductIdAndStatDate(productId, today)
-                .orElseThrow(() -> new AssertionError("통계가 저장되지 않았습니다"));
-
-        assertThat(stats.getSalesCount()).isEqualTo(2);
-        assertThat(stats.getSalesAmount()).isEqualTo(20000L); // 2 * 10000
-    }
-
-
-    @Test
-    @DisplayName("오늘자 통계가 존재하면 판매량과 금액이 누적된다")
-    void record_accumulatesIfStatisticsExists() {
-        // given
-        Long productId = 9L; // Vans Old Skool
-        LocalDate today = LocalDate.now();
-
-        // clean up and setup
-        repository.findByProductIdAndStatDate(productId, today).ifPresent(repository::delete);
-        ProductStatistics existing = ProductStatistics.create(productId, today);
-        existing.addSales(1, Money.wons(5000L));
-        repository.save(existing);
-
-        // when
-        service.record(new RecordSalesCommand(productId, 2, 5000L));
-
-        // then
-        ProductStatistics stats = repository.findByProductIdAndStatDate(productId, today).orElseThrow();
-        assertThat(stats.getSalesCount()).isEqualTo(3);
-        assertThat(stats.getSalesAmount()).isEqualTo(15000L);
-    }
 
     @Test
     @DisplayName("최근 3일간의 통계 기반으로 인기 상품 정렬 결과가 유효하다")
