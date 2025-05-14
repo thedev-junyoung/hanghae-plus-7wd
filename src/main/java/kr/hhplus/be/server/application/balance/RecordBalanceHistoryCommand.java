@@ -10,6 +10,17 @@ public record RecordBalanceHistoryCommand(
         String reason,
         String requestId
 ) {
+
+    public static RecordBalanceHistoryCommand of(BalanceChargedEvent event) {
+        return new RecordBalanceHistoryCommand(
+                event.userId(),
+                event.amount(),
+                BalanceChangeType.CHARGE,
+                event.reason(),
+                event.requestId()
+        );
+    }
+
     public static RecordBalanceHistoryCommand of(ChargeBalanceCriteria criteria) {
         return new RecordBalanceHistoryCommand(
                 criteria.userId(),

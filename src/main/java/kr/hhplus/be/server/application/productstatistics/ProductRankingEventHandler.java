@@ -27,7 +27,7 @@ public class ProductRankingEventHandler {
         Order order = orderRepository.findById(event.orderId())
                 .orElseThrow(() -> new OrderException.NotFoundException(event.orderId()));
         for (OrderItem item : order.getItems()) {
-            rankingService.recordRanking(item.getProductId(), item.getQuantity());
+            rankingService.record(item.getProductId(), item.getQuantity());
         }
         log.info("[Product] 상품 판매 기록 완료 - orderId={}", event.orderId());
     }

@@ -1,50 +1,40 @@
 package kr.hhplus.be.server.application.balance;
 
-import kr.hhplus.be.server.domain.balance.BalanceHistory;
-import kr.hhplus.be.server.domain.balance.BalanceHistoryRepository;
+import kr.hhplus.be.server.domain.balance.BalanceChangeType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
 
 import static org.mockito.Mockito.*;
 
 class BalanceHistoryEventHandlerTest {
 
-    private BalanceHistoryRepository balanceHistoryRepository;
     private BalanceHistoryEventHandler handler;
+    private BalanceHistoryUseCase balanceHistoryUseCase;
 
     @BeforeEach
     void setUp() {
-        balanceHistoryRepository = mock(BalanceHistoryRepository.class);
-        handler = new BalanceHistoryEventHandler(balanceHistoryRepository);
+        balanceHistoryUseCase = mock(BalanceHistoryUseCase.class);
+        handler = new BalanceHistoryEventHandler(balanceHistoryUseCase);
     }
 
     @Test
-    @DisplayName("이벤트 수신 시 중복되지 않았다면 기록을 저장한다")
-    void handle_shouldSave_ifNotDuplicate() {
+    @DisplayName("이벤트 수신 시 BalanceHistoryUseCase.recordHistory가 호출된다")
+    void handle_shouldDelegateToUseCase() {
         // given
-        BalanceChargedEvent event = new BalanceChargedEvent(1L, 10000L, "테스트충전", "REQ-1234");
-        when(balanceHistoryRepository.existsByRequestId("REQ-1234")).thenReturn(false);
+        BalanceChargedEvent event = new BalanceChargedEvent(1L, 10000L, BalanceChangeType.CHARGE,"테스트충전", "REQ-1234");
 
         // when
         handler.handle(event);
 
         // then
-        verify(balanceHistoryRepository).save(any(BalanceHistory.class));
-    }
-
-    @Test
-    @DisplayName("중복된 requestId면 저장을 건너뛴다")
-    void handle_shouldSkip_ifDuplicate() {
-        // given
-        BalanceChargedEvent event = new BalanceChargedEvent(1L, 10000L, "중복충전", "REQ-1234");
-        when(balanceHistoryRepository.existsByRequestId("REQ-1234")).thenReturn(true);
-
-        // when
-        handler.handle(event);
-
-        // then
-        verify(balanceHistoryRepository, never()).save(any());
+        verify(balanceHistoryUseCase).recordHistory(
+                argThat(cmd ->
+                        cmd.userId().equals(1L) &&
+                                cmd.amount() == 10000L &&
+                                cmd.reason().equals("테스트충전") &&
+                                cmd.requestId().equals("REQ-1234")
+                )
+        );
     }
 }
