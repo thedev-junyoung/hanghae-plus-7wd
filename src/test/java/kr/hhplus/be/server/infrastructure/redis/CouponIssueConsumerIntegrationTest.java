@@ -1,13 +1,11 @@
 package kr.hhplus.be.server.infrastructure.redis;
 
-import io.lettuce.core.RedisBusyException;
 import kr.hhplus.be.server.application.coupon.CouponUseCase;
 import kr.hhplus.be.server.application.coupon.IssueLimitedCouponCommand;
 import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.CouponIssueRepository;
 import kr.hhplus.be.server.domain.coupon.CouponRepository;
 import kr.hhplus.be.server.infrastructure.redis.util.CouponStreamKeyResolver;
-import net.minidev.json.JSONNavi;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,10 +15,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.StreamOffset;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

@@ -3,7 +3,6 @@ package kr.hhplus.be.server.infrastructure.redis;
 import io.lettuce.core.RedisBusyException;
 import kr.hhplus.be.server.application.coupon.CouponAsyncIssueService;
 import kr.hhplus.be.server.application.coupon.CouponUseCase;
-import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.infrastructure.redis.util.CouponStreamKeyResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +16,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 @RequiredArgsConstructor

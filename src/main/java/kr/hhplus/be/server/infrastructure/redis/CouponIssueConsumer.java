@@ -5,7 +5,6 @@ import kr.hhplus.be.server.application.coupon.CouponUseCase;
 import kr.hhplus.be.server.infrastructure.redis.util.CouponStreamKeyResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,7 +18,6 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-//@Profile("!test")
 public class CouponIssueConsumer {
 
     private final CouponUseCase couponService;
