@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.Optional;
 
 @Entity
 @Table(name = "product_statistics")
@@ -32,6 +33,27 @@ public class ProductStatistics {
         this.id = id;
         this.salesCount = salesCount;
         this.salesAmount = salesAmount.value();
+    }
+
+    public static ProductStatistics createOrUpdate(
+            ProductStatistics existing,
+            Long productId,
+            LocalDate date,
+            int quantity,
+            Money unitPrice
+    ) {
+        ProductStatistics stat = (existing != null)
+                ? existing
+                : ProductStatistics.create(productId, date);
+        stat.addSales(quantity, unitPrice);
+        return stat;
+    }
+
+
+
+    public void accumulate(int quantity, Money unitPrice) {
+        this.salesCount += quantity;
+        this.salesAmount += unitPrice.multiply(quantity).value();
     }
 
     public void addSales(int quantity, Money unitPrice) {

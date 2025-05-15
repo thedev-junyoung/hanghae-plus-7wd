@@ -1,39 +1,60 @@
 package kr.hhplus.be.server.application.productstatistics;
 
 import kr.hhplus.be.server.application.productstatistics.strategy.ProductRankingStrategy;
+import kr.hhplus.be.server.infrastructure.redis.ProductRankRedisRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class ProductRankingServiceTest {
 
+    ProductRankingStrategy daily;
+    ProductRankingStrategy weekly;
+    ProductRankingStrategy monthly;
 
-    @InjectMocks
-    ProductRankingService rankingService;
+    ProductRankingService service;
 
-
-    @Mock
-    ProductRankingStrategy strategy1;
+    ProductRankRedisRepository productRankRedisRepository;
 
     @BeforeEach
     void setUp() {
-        rankingService = new ProductRankingService(List.of(strategy1)); // 명시적 주입
+        daily = mock(ProductRankingStrategy.class);
+        weekly = mock(ProductRankingStrategy.class);
+        monthly = mock(ProductRankingStrategy.class);
+        productRankRedisRepository = mock(ProductRankRedisRepository.class);
+        service = new ProductRankingService(List.of(daily, weekly, monthly), productRankRedisRepository);
     }
 
     @Test
-    @DisplayName("상품 판매 수량만큼 점수 증가")
-    void recordRanking_shouldIncreaseScore() {
-        rankingService.record(1L, 3);
+    @DisplayName("record 메서드가 호출되면 모든 전략에 대해 record 메서드가 호출된다.")
+    void record_should_delegate_to_all_strategies() {
+        // given
+        Long productId = 1L;
+        int quantity = 5;
 
-        verify(strategy1).record(1L, 3); // 단일 전략이 호출됐는지 검증
+        // when
+        service.record(productId, quantity);
+
+        // then
+        verify(daily).record(productId, quantity);
+        verify(weekly).record(productId, quantity);
+        verify(monthly).record(productId, quantity);
+    }
+
+    @Test
+    @DisplayName("record 메서드가 호출되면 전략이 없을 경우에도 예외가 발생하지 않는다.")
+    void record_should_work_even_if_no_strategies() {
+        // given
+        ProductRankingService emptyService = new ProductRankingService(List.of(), productRankRedisRepository);
+
+        // when
+        emptyService.record(1L, 10);
+
+        // then
+        // 예외 발생하지 않으면 성공
     }
 }

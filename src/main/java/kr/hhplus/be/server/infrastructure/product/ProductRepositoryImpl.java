@@ -35,4 +35,9 @@ public class ProductRepositoryImpl implements ProductRepository {
     public List<Product> findAllById(List<Long> productIds) {
         return jpaRepository.findAllById(productIds);
     }
+
+    @Override
+    public Optional<Long> findUnitPriceById(Long productId) {
+        return jpaRepository.findUnitPrice(productId);
+    }
 }

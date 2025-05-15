@@ -5,6 +5,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Repository;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,12 +30,6 @@ public class ProductRankRedisRepositoryImpl implements ProductRankRedisRepositor
     }
 
     @Override
-    public Long getRank(String key, Long productId) {
-        Long rank = redisTemplate.opsForZSet().reverseRank(key, productId.toString());
-        return rank != null ? rank + 1 : null;
-    }
-
-    @Override
     public void remove(String key, Long productId) {
         redisTemplate.opsForZSet().remove(key, productId.toString());
     }
@@ -48,4 +43,13 @@ public class ProductRankRedisRepositoryImpl implements ProductRankRedisRepositor
     public Double getScore(String key, Long productId) {
         return redisTemplate.opsForZSet().score(key, productId.toString());
     }
+
+    // Redis 키 존재 여부와 TTL 설정
+    @Override
+    public void expireIfAbsent(String key, Duration ttl) {
+        Boolean exists = redisTemplate.hasKey(key);
+        if (Boolean.TRUE.equals(exists)) return;
+        redisTemplate.expire(key, ttl);
+    }
+
 }
