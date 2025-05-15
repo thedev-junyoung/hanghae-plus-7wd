@@ -22,6 +22,6 @@ public class CouponRequest {
     private String couponCode;
 
     public IssueLimitedCouponCommand toCommand() {
-        return new IssueLimitedCouponCommand(userId, couponCode);
+        return new IssueLimitedCouponCommand(userId, couponCode, null);
     }
 }

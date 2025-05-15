@@ -51,7 +51,6 @@ CREATE TABLE coupon_issue (
                               coupon_id BIGINT NOT NULL,
                               issued_at DATETIME NOT NULL,
                               is_used BOOLEAN NOT NULL
-
 );
 
 CREATE TABLE orders (
@@ -122,7 +121,8 @@ CREATE TABLE product_statistics (
                                     PRIMARY KEY (product_id, stat_date)
 );
 
-
+ALTER TABLE coupon_issue
+ADD CONSTRAINT uq_user_coupon UNIQUE (user_id, coupon_id);
 
 INSERT INTO product (id, name, brand, price, release_date, image_url, description, created_at, updated_at)
 VALUES

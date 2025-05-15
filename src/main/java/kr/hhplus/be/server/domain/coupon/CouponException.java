@@ -2,6 +2,7 @@ package kr.hhplus.be.server.domain.coupon;
 
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.common.exception.ErrorCode;
+import kr.hhplus.be.server.common.vo.Money;
 
 public class CouponException extends BusinessException {
     public CouponException(ErrorCode errorCode) {
@@ -37,4 +38,15 @@ public class CouponException extends BusinessException {
         }
     }
 
+    public static class NotApplicableException extends BusinessException {
+        public NotApplicableException(Money orderAmount) {
+            super(ErrorCode.COUPON_NOT_APPLICABLE, "쿠폰 조건을 만족하지 않습니다. 주문 금액: " + orderAmount);
+        }
+    }
+
+    public static class DuplicateRequestException extends BusinessException {
+        public DuplicateRequestException(String requestId) {
+            super(ErrorCode.DUPLICATE_REQUEST, "중복된 요청입니다: requestId=" + requestId);
+        }
+    }
 }

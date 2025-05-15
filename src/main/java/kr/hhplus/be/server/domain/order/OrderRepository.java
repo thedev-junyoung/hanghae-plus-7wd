@@ -25,4 +25,6 @@ public interface OrderRepository{
 
     Optional<Order> findByIdWithItems(String orderId);
 
+    void flush();
+
 }

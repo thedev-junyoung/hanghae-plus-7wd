@@ -2,23 +2,27 @@ package kr.hhplus.be.server.application.productstatistics;
 
 import kr.hhplus.be.server.application.product.PopularProductCriteria;
 import kr.hhplus.be.server.common.vo.Money;
+import kr.hhplus.be.server.domain.balance.BalanceHistoryRepository;
+import kr.hhplus.be.server.domain.product.Product;
+import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.productstatistics.ProductStatistics;
-import kr.hhplus.be.server.domain.productstatistics.ProductStatisticsId;
 import kr.hhplus.be.server.domain.productstatistics.ProductStatisticsRepository;
+import kr.hhplus.be.server.infrastructure.redis.ProductRankRedisRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.test.annotation.DirtiesContext;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest
 class ProductStatisticsServiceIntegrationTest {
 
@@ -28,51 +32,45 @@ class ProductStatisticsServiceIntegrationTest {
     @Autowired
     ProductStatisticsRepository repository;
 
-    @Test
-    @DisplayName("오늘자 통계가 없을 경우 새로 생성되어 저장된다")
-    void record_createsNewStatistics() {
-        // given
-        Long productId = 10L; // 실제 존재하는 제품 ID (예: Reebok Classic Leather)
-        LocalDate today = LocalDate.now();
-        int quantity = 2;
-        long unitAmount = 10000L;
-
-        // 🧹 기존 통계가 있으면 삭제
-        repository.findByProductIdAndStatDate(productId, today)
-                .ifPresent(stat -> repository.delete(stat));
-
-        // when
-        service.record(new RecordSalesCommand(productId, quantity, unitAmount));
-
-        // then
-        ProductStatistics stats = repository.findByProductIdAndStatDate(productId, today)
-                .orElseThrow(() -> new AssertionError("통계가 저장되지 않았습니다"));
-
-        assertThat(stats.getSalesCount()).isEqualTo(2);
-        assertThat(stats.getSalesAmount()).isEqualTo(20000L); // 2 * 10000
-    }
+    @Autowired
+    ProductRankRedisRepository redisRepository;
 
 
-    @Test
-    @DisplayName("오늘자 통계가 존재하면 판매량과 금액이 누적된다")
-    void record_accumulatesIfStatisticsExists() {
-        // given
-        Long productId = 9L; // Vans Old Skool
-        LocalDate today = LocalDate.now();
+    @Autowired
+    ProductRepository productRepository;
 
-        // clean up and setup
-        repository.findByProductIdAndStatDate(productId, today).ifPresent(repository::delete);
-        ProductStatistics existing = ProductStatistics.create(productId, today);
-        existing.addSales(1, Money.wons(5000L));
-        repository.save(existing);
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
-        // when
-        service.record(new RecordSalesCommand(productId, 2, 5000L));
+    private Long productId1 = 901L;  // 테스트 전용 productId
+    private Long productId2 = 902L;
+    private final int delta1 = 3;
+    private final int delta2 = 5;
+    private LocalDate targetDate;
+    private String redisKey;
 
-        // then
-        ProductStatistics stats = repository.findByProductIdAndStatDate(productId, today).orElseThrow();
-        assertThat(stats.getSalesCount()).isEqualTo(3);
-        assertThat(stats.getSalesAmount()).isEqualTo(15000L);
+
+
+    @BeforeEach
+    void setUp() {
+
+        targetDate = LocalDate.now().minusDays(1);
+        redisKey = "ranking:daily:" + targetDate.format(FORMATTER);
+
+        // 실제 존재하는 상품 ID로 대체하거나, 다음처럼 직접 추가
+        Product product1 = Product.create("테스트1", "브랜드A", Money.wons(10000), targetDate.minusDays(10), null, null);
+        Product product2 = Product.create("테스트2", "브랜드B", Money.wons(20000), targetDate.minusDays(10), null, null);
+        product1 = productRepository.save(product1);
+        product2 = productRepository.save(product2);
+
+        productId1 = product1.getId();
+        productId2 = product2.getId();
+
+        repository.findByProductIdAndStatDate(productId1, targetDate).ifPresent(repository::delete);
+        repository.findByProductIdAndStatDate(productId2, targetDate).ifPresent(repository::delete);
+
+        redisRepository.incrementScore(redisKey, productId1, delta1);
+        redisRepository.incrementScore(redisKey, productId2, delta2);
+        redisRepository.incrementScore(redisKey, 9999L, 0); // 무효 점수
     }
 
     @Test
@@ -103,4 +101,25 @@ class ProductStatisticsServiceIntegrationTest {
     }
 
 
+    @Test
+    @DisplayName("syncDailyStatistics - Redis → DB 통계 저장 검증")
+    void syncDailyStatistics_should_write_to_database() {
+        // when
+        service.syncDailyStatistics(targetDate);
+
+        // then
+        Optional<ProductStatistics> stat1 = repository.findByProductIdAndStatDate(productId1, targetDate);
+        Optional<ProductStatistics> stat2 = repository.findByProductIdAndStatDate(productId2, targetDate);
+        Optional<ProductStatistics> none = repository.findByProductIdAndStatDate(9999L, targetDate);
+
+        assertThat(stat1).isPresent();
+        assertThat(stat1.get().getSalesCount()).isEqualTo(delta1);
+        assertThat(stat1.get().getSalesAmount()).isGreaterThan(0);
+
+        assertThat(stat2).isPresent();
+        assertThat(stat2.get().getSalesCount()).isEqualTo(delta2);
+        assertThat(stat2.get().getSalesAmount()).isGreaterThan(0);
+
+        assertThat(none).isEmpty();
+    }
 }
