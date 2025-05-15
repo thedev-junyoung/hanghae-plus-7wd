@@ -2,6 +2,7 @@ package kr.hhplus.be.server.domain.coupon;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface CouponRepository {
     /**
@@ -12,7 +13,7 @@ public interface CouponRepository {
     /**
      * 쿠폰을 삭제한다.
      */
-    Coupon findByCode(String code); // 못 찾으면 CouponNotFoundException
+    Optional<Coupon> findByCode(String code); // 못 찾으면 CouponNotFoundException
 
 
     Coupon findByCodeForUpdate(String code);

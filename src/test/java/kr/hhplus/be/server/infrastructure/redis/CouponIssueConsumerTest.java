@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.infrastructure.redis;
 
-import kr.hhplus.be.server.application.coupon.CouponAsyncIssueService;
 import kr.hhplus.be.server.application.coupon.CouponUseCase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,69 +14,133 @@ import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.core.StreamOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CouponIssueConsumerTest {
 
-    @Mock
-    StringRedisTemplate redisTemplate;
-
-    @Mock
-    CouponUseCase couponService;
-
-    @Mock
-    CouponAsyncIssueService issueService;
-
     @InjectMocks
-    CouponIssueConsumer consumer;
+    private CouponIssueConsumer consumer;
 
-    @Test
-    @DisplayName("초기 그룹 생성: Stream 존재하지 않으면 생성 및 그룹 생성 시도")
-    void initStreamGroups_createStreamAndGroup() {
-        given(couponService.findAllCouponCodes()).willReturn(List.of("WELCOME10"));
-        StreamOperations<String, Object, Object> streamOps = mock(StreamOperations.class);
-        given(redisTemplate.hasKey(anyString())).willReturn(false);
-        given(redisTemplate.opsForStream()).willReturn(streamOps);
+    @Mock
+    private CouponUseCase couponService;
 
-        consumer.initStreamGroups();
+    @Mock
+    private CouponStreamReader streamReader;
 
-        verify(streamOps, atLeastOnce()).add(anyString(), anyMap());
-        verify(streamOps, atLeastOnce()).createGroup(anyString(), eq("coupon-consumer-group"));
+    @Mock
+    private CouponIssueStreamProcessor processor;
+
+    @Mock
+    private StringRedisTemplate redisTemplate;
+
+    @Mock
+    private StreamOperations<String, Object, Object> streamOps;
+
+    @BeforeEach
+    void setup() {
+        when(redisTemplate.opsForStream()).thenReturn(streamOps);
+        reset(redisTemplate, streamOps, couponService, streamReader, processor);
+        when(redisTemplate.opsForStream()).thenReturn(streamOps);
+
     }
-
     @Test
-    @DisplayName("정상적으로 레코드를 가져오고 쿠폰 발급 처리")
-    void consume_shouldProcessRecords() {
+    @DisplayName("정상적인 쿠폰 코드에 대해 스트림 데이터를 읽고 처리한다")
+    void consume_shouldProcessEachCouponCode() {
+        // given
         String couponCode = "WELCOME10";
-        Map<Object, Object> value = Map.of(
-                "userId", "1",
-                "couponCode", couponCode,
-                "requestId", "req1"
+        String streamKey = "coupon:stream:WELCOME10";
+        List<MapRecord<String, Object, Object>> mockRecords = List.of(
+                MapRecord.create(streamKey, Map.of("userId", "1"))
         );
 
-        MapRecord<String, Object, Object> record = MapRecord.create("coupon:stream:WELCOME10", value);
-
-        given(couponService.findAllCouponCodes()).willReturn(List.of(couponCode));
-        StreamOperations<String, Object, Object> streamOps = mock(StreamOperations.class);
-        given(redisTemplate.opsForStream()).willReturn(streamOps);
-        given(streamOps.read(
-                any(Consumer.class),
+        when(couponService.findAllCouponCodes()).thenReturn(List.of(couponCode));
+        when(redisTemplate.hasKey(streamKey)).thenReturn(true);
+        when(streamOps.read(
+                eq(Consumer.from("coupon-consumer-group", "consumer-1")),
                 any(StreamReadOptions.class),
                 any(StreamOffset.class)
-        )).willReturn(List.of(record));
+        )).thenReturn(mockRecords);
+
+        // when
         consumer.consume();
 
-        verify(issueService).processAsync(value);
+        // then
+        verify(redisTemplate).hasKey(streamKey);
+        verify(streamOps, never()).add(anyString(), anyMap());
+        verify(streamOps).createGroup(streamKey, "coupon-consumer-group");
+        // ✅ remove this:
+        // verify(streamReader).readStream(couponCode);
+        verify(processor).process(couponCode, mockRecords);
     }
+
+    @Test
+    @DisplayName("Stream이 없으면 더미 레코드를 추가하고 group을 생성한다")
+    void ensureStreamAndGroupExist_shouldAddDummyIfStreamMissing() {
+        // given
+        String streamKey = "coupon:stream:TEST-COUPON";
+
+        when(redisTemplate.hasKey(streamKey)).thenReturn(false);
+        when(couponService.findAllCouponCodes()).thenReturn(List.of("TEST-COUPON"));
+
+        // when
+        consumer.consume();
+
+        // then
+        verify(streamOps).add(eq(streamKey), eq(Map.of("init", "init")));
+    }
+
+    @Test
+    @DisplayName("이미 존재하는 group이면 BUSYGROUP 예외를 무시하고 진행한다")
+    void ensureStreamAndGroupExist_shouldHandleBusyGroupException() {
+        // given
+        String streamKey = "coupon:stream:TEST-COUPON";
+
+        when(redisTemplate.hasKey(streamKey)).thenReturn(true);
+        when(couponService.findAllCouponCodes()).thenReturn(List.of("TEST-COUPON"));
+
+
+        RuntimeException busyGroup = new RuntimeException(
+                new io.lettuce.core.RedisBusyException("BUSYGROUP Consumer Group name already exists")
+        );
+        doThrow(busyGroup).when(streamOps).createGroup(streamKey, "coupon-consumer-group");
+
+        // when
+        consumer.consume();
+
+        // then
+        verify(streamOps).createGroup(streamKey, "coupon-consumer-group");
+    }
+
+
+    @Test
+    @DisplayName("레코드가 존재하면 processor가 호출된다")
+    void consume_shouldProcessRecordIfPresent() {
+        // given
+        String code = "TEST-COUPON";
+        String streamKey = "coupon:stream:TEST-COUPON";
+        MapRecord<String, Object, Object> record = MapRecord.create(streamKey, Map.of("userId", "1"));
+
+        when(couponService.findAllCouponCodes()).thenReturn(List.of(code));
+        when(redisTemplate.hasKey(streamKey)).thenReturn(true);
+        when(streamOps.read(
+                eq(Consumer.from("coupon-consumer-group", "consumer-1")),
+                any(StreamReadOptions.class),
+                any(StreamOffset.class)
+        )).thenReturn(List.of(record));
+
+        // when
+        consumer.consume();
+
+        // then
+        verify(processor).process(code, List.of(record));
+    }
+
 }

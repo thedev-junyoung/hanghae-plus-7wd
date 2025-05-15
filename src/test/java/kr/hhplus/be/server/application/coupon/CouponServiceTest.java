@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -55,7 +56,7 @@ class CouponServiceTest {
         Coupon coupon = createValidCoupon();
         IssueLimitedCouponCommand command = new IssueLimitedCouponCommand(userId, couponCode, null);
 
-        given(couponRepository.findByCode(couponCode)).willReturn(coupon);
+        given(couponRepository.findByCode(couponCode)).willReturn(Optional.of(coupon));
         given(couponIssueRepository.hasIssued(userId, coupon.getId())).willReturn(false);
 
         CouponResult result = couponService.issueLimitedCoupon(command);
@@ -75,7 +76,7 @@ class CouponServiceTest {
     @DisplayName("이미 쿠폰을 발급받은 경우 예외 발생")
     void issueCoupon_fail_ifAlreadyIssued() {
         Coupon coupon = createValidCoupon();
-        given(couponRepository.findByCode(couponCode)).willReturn(coupon);
+        given(couponRepository.findByCode(couponCode)).willReturn(Optional.of(coupon));
         given(couponIssueRepository.hasIssued(userId, coupon.getId())).willReturn(true);
 
         assertThrows(CouponException.AlreadyIssuedException.class, () ->
@@ -95,7 +96,7 @@ class CouponServiceTest {
                 now.minusDays(1)
         );
 
-        given(couponRepository.findByCode(couponCode)).willReturn(expiredCoupon);
+        given(couponRepository.findByCode(couponCode)).willReturn(Optional.of(expiredCoupon));
 
 
         assertThrows(CouponException.ExpiredException.class, () ->
@@ -117,7 +118,7 @@ class CouponServiceTest {
                 now.plusDays(1)
         );
 
-        given(couponRepository.findByCode(couponCode)).willReturn(soldOutCoupon);
+        given(couponRepository.findByCode(couponCode)).willReturn(Optional.of(soldOutCoupon));
 
 
 
@@ -135,7 +136,7 @@ class CouponServiceTest {
 
         CouponIssue issue = CouponIssue.create(userId, coupon, fixedClock);
 
-        given(couponRepository.findByCode(couponCode)).willReturn(coupon);
+        given(couponRepository.findByCode(couponCode)).willReturn(Optional.of(coupon));
         given(couponIssueRepository.findByUserIdAndCouponId(userId, coupon.getId()))
                 .willReturn(java.util.Optional.of(issue));
 
@@ -152,7 +153,7 @@ class CouponServiceTest {
     void applyCoupon_fail_ifNotIssued() {
         Coupon coupon = createValidCoupon();
 
-        given(couponRepository.findByCode(couponCode)).willReturn(coupon);
+        given(couponRepository.findByCode(couponCode)).willReturn(Optional.of(coupon));
         given(couponIssueRepository.findByUserIdAndCouponId(userId, coupon.getId()))
                 .willReturn(java.util.Optional.empty());
 

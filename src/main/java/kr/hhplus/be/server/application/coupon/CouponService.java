@@ -31,7 +31,8 @@ public class CouponService implements CouponUseCase {
 
         log.info("[비즈니스 로직 시작: 쿠폰 발급] userId={}, couponCode={}", command.userId(), command.couponCode());
 
-        Coupon coupon = couponRepository.findByCode(command.couponCode());
+        Coupon coupon = couponRepository.findByCode(command.couponCode())
+                .orElseThrow(() -> new CouponException.NotFoundException(command.couponCode()));
 
         if (couponIssueRepository.hasIssued(command.userId(), coupon.getId())) {
             log.info("[중복 발급 차단] userId={}, couponCode={}", command.userId(), command.couponCode());
@@ -58,7 +59,8 @@ public class CouponService implements CouponUseCase {
     @Transactional
     public ApplyCouponResult applyCoupon(ApplyCouponCommand command) {
         // 쿠폰 코드로 쿠폰 조회
-        Coupon coupon = couponRepository.findByCode(command.couponCode());
+        Coupon coupon = couponRepository.findByCode(command.couponCode())
+                .orElseThrow(() -> new CouponException.NotFoundException(command.couponCode()));
 
         // 발급받은 쿠폰 이력 조회
         CouponIssue issue = couponIssueRepository.findByUserIdAndCouponId(command.userId(), coupon.getId())
@@ -85,7 +87,8 @@ public class CouponService implements CouponUseCase {
             return total;
         }
 
-        Coupon coupon = couponRepository.findByCode(command.couponCode());
+        Coupon coupon = couponRepository.findByCode(command.couponCode())
+                .orElseThrow(() -> new CouponException.NotFoundException(command.couponCode()));
 
         CouponIssue issue = couponIssueRepository.findByUserIdAndCouponId(command.userId(), coupon.getId())
                 .orElseThrow(() -> new CouponException.NotIssuedException(command.userId(), command.couponCode()));

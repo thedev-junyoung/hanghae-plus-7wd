@@ -43,4 +43,10 @@ public class CouponException extends BusinessException {
             super(ErrorCode.COUPON_NOT_APPLICABLE, "쿠폰 조건을 만족하지 않습니다. 주문 금액: " + orderAmount);
         }
     }
+
+    public static class DuplicateRequestException extends BusinessException {
+        public DuplicateRequestException(String requestId) {
+            super(ErrorCode.DUPLICATE_REQUEST, "중복된 요청입니다: requestId=" + requestId);
+        }
+    }
 }
