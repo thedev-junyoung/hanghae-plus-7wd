@@ -22,7 +22,12 @@ public class OrderProcessingService {
         List<OrderItem> orderItems = orderItemCreator.create(command.items());
 
         // 2. 쿠폰 할인 적용
-        Money discountedTotal = couponUseCase.calculateDiscountedTotal(command, orderItems);
+        Money discountedTotal = couponUseCase.calculateDiscountedTotal(
+                ApplyDiscountCommand.of(
+                    command.userId(),
+                    command.couponCode(),
+                    orderItems
+        ));
 
         // 3. 주문 생성
         return orderService.createOrder(command.userId(), orderItems, discountedTotal);

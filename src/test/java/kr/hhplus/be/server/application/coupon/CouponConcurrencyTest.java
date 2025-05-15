@@ -92,7 +92,7 @@ public class CouponConcurrencyTest {
             executor.execute(() -> {
                 try {
                     System.out.printf("사용자 %d → 쿠폰 요청\n", userId);
-                    couponService.issueLimitedCoupon(new IssueLimitedCouponCommand(userId, COUPON_CODE));
+                    couponService.issueLimitedCoupon(new IssueLimitedCouponCommand(userId, COUPON_CODE, null));
                     successUsers.add(userId);
                     System.out.printf("사용자 %d → 쿠폰 발급 성공\n", userId);
                 } catch (Exception e) {

@@ -60,4 +60,9 @@ public class ProductStatisticRepositoryImpl implements ProductStatisticsReposito
     public void deleteAll() {
         jpaRepository.deleteAll();
     }
+
+    @Override
+    public List<ProductStatistics> findAll() {
+        return jpaRepository.findAll();
+    }
 }

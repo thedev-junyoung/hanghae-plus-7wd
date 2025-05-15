@@ -252,14 +252,14 @@ FROM (
 
 -- Coupon Issues (50만 건)
 INSERT INTO coupon_issue (user_id, coupon_id, issued_at, is_used)
-SELECT
-    FLOOR(1 + RAND() * 50000), -- 다양한 유저
-    FLOOR(1 + RAND() * 100000),
-    NOW(),
-    IF(RAND() < 0.7, false, true)
+SELECT DISTINCT user_id, coupon_id, NOW(), false
 FROM (
-         SELECT 1 FROM information_schema.tables t1, information_schema.tables t2 LIMIT 500000
-     ) dummy;
+         SELECT FLOOR(1 + RAND() * 50000) AS user_id,
+                FLOOR(1 + RAND() * 500) AS coupon_id
+         FROM information_schema.tables t1, information_schema.tables t2
+             LIMIT 500000
+     ) tmp;
+
 
 SET NAMES utf8mb4;
 SET character_set_client = utf8mb4;

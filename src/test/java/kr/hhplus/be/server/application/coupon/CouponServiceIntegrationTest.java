@@ -2,12 +2,10 @@ package kr.hhplus.be.server.application.coupon;
 
 import kr.hhplus.be.server.common.vo.Money;
 import kr.hhplus.be.server.domain.coupon.*;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -53,7 +51,8 @@ class CouponServiceIntegrationTest {
         assertThat(result.discountRate()).isEqualTo(1000); // DB에 저장된 값
 
         // then: 2차 - 실제 DB에도 저장되었는지 확인
-        Coupon coupon = couponRepository.findByCode(couponCode);
+        Coupon coupon = couponRepository.findByCode(couponCode)
+                .orElseThrow(() -> new AssertionError("coupon not found"));
         CouponIssue issue = couponIssueRepository.findByUserIdAndCouponId(userId, coupon.getId())
                 .orElseThrow(() -> new AssertionError("coupon_issue not saved"));
 
@@ -74,7 +73,8 @@ class CouponServiceIntegrationTest {
         couponService.applyCoupon(command);
 
         // then
-        Coupon coupon = couponRepository.findByCode(couponCode);
+        Coupon coupon = couponRepository.findByCode(couponCode)
+                .orElseThrow(() -> new AssertionError("coupon not found"));
         CouponIssue issue = couponIssueRepository.findByUserIdAndCouponId(userId, coupon.getId())
                 .orElseThrow(() -> new AssertionError("coupon_issue not found"));
 
@@ -85,14 +85,16 @@ class CouponServiceIntegrationTest {
     @DisplayName("쿠폰 발급 시 남은 수량이 1 감소한다")
     void issueLimitedCoupon_decreaseQuantity() {
         // given
-        Coupon before = couponRepository.findByCode(couponCode);
+        Coupon before = couponRepository.findByCode(couponCode)
+                .orElseThrow(() -> new AssertionError("coupon not found"));
         int prevRemaining = before.getRemainingQuantity();
 
         // when
         couponService.issueLimitedCoupon(IssueLimitedCouponCommand.of(userId, couponCode));
 
         // then
-        Coupon after = couponRepository.findByCode(couponCode);
+        Coupon after = couponRepository.findByCode(couponCode)
+                .orElseThrow(() -> new AssertionError("coupon not found"));
         assertThat(after.getRemainingQuantity()).isEqualTo(prevRemaining - 1);
     }
 

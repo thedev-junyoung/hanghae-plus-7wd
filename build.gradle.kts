@@ -67,10 +67,16 @@ dependencies {
 	implementation("io.micrometer:micrometer-registry-prometheus:1.14.5")
 	implementation("io.micrometer:micrometer-core")
 
+	testCompileOnly("org.projectlombok:lombok")
+	testAnnotationProcessor("org.projectlombok:lombok")
 }
 
 tasks.withType<Test> {
-	useJUnitPlatform()
+	useJUnitPlatform{
+		excludeTags("benchmark")
+	}
 	systemProperty("user.timezone", "UTC")
 	systemProperty("spring.profiles.active", "test")
+
+
 }

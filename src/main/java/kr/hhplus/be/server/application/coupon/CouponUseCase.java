@@ -1,8 +1,8 @@
 package kr.hhplus.be.server.application.coupon;
 
-import kr.hhplus.be.server.application.order.CreateOrderCommand;
+import kr.hhplus.be.server.application.order.ApplyDiscountCommand;
 import kr.hhplus.be.server.common.vo.Money;
-import kr.hhplus.be.server.domain.order.OrderItem;
+import kr.hhplus.be.server.domain.coupon.Coupon;
 
 import java.util.List;
 
@@ -18,6 +18,10 @@ public interface CouponUseCase {
      */
     ApplyCouponResult applyCoupon(ApplyCouponCommand command);
 
-    Money calculateDiscountedTotal(CreateOrderCommand command, List<OrderItem> items);
+    Money calculateDiscountedTotal(ApplyDiscountCommand command);
+
+    void enqueueLimitedCoupon(IssueLimitedCouponCommand command);
+
+    List<String> findAllCouponCodes();
 }
 

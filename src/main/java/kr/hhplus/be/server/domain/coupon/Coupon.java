@@ -111,12 +111,9 @@ public class Coupon {
     }
 
     public Money calculateDiscount(Money orderAmount) {
-        return switch (this.type) {
-            case FIXED -> Money.wons(this.discountRate);
-            case PERCENTAGE -> orderAmount.multiplyPercent(this.discountRate);
-        };
+        DiscountSpecification spec = DiscountSpecificationFactory.from(this);
+        return spec.calculateDiscount(orderAmount);
     }
-
 
     static class Policy {
         public static boolean isExpired(LocalDateTime until, Clock clock) {

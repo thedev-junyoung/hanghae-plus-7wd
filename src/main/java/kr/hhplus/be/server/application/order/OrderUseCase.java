@@ -23,6 +23,5 @@ public interface OrderUseCase {
      */
     void markConfirmed(Order order);
 
-    Order getOrderForPaymentWithLock(String orderId); // 주문을 잠금 처리하여 동시성 문제를 방지
-
+    void confirmOrder(String orderId);
 }
