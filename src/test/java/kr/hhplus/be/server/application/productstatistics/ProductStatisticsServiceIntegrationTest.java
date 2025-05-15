@@ -2,17 +2,18 @@ package kr.hhplus.be.server.application.productstatistics;
 
 import kr.hhplus.be.server.application.product.PopularProductCriteria;
 import kr.hhplus.be.server.common.vo.Money;
+import kr.hhplus.be.server.domain.balance.BalanceHistoryRepository;
+import kr.hhplus.be.server.domain.product.Product;
+import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.productstatistics.ProductStatistics;
-import kr.hhplus.be.server.domain.productstatistics.ProductStatisticsId;
 import kr.hhplus.be.server.domain.productstatistics.ProductStatisticsRepository;
 import kr.hhplus.be.server.infrastructure.redis.ProductRankRedisRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.test.annotation.DirtiesContext;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -22,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest
 class ProductStatisticsServiceIntegrationTest {
 
@@ -35,19 +35,38 @@ class ProductStatisticsServiceIntegrationTest {
     @Autowired
     ProductRankRedisRepository redisRepository;
 
+
+    @Autowired
+    ProductRepository productRepository;
+
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
-    private final Long productId1 = 1L;
-    private final Long productId2 = 2L;
+    private Long productId1 = 901L;  // 테스트 전용 productId
+    private Long productId2 = 902L;
     private final int delta1 = 3;
     private final int delta2 = 5;
     private LocalDate targetDate;
     private String redisKey;
 
+
+
     @BeforeEach
     void setUp() {
-        targetDate = LocalDate.now().minusDays(1); // 어제
+
+        targetDate = LocalDate.now().minusDays(1);
         redisKey = "ranking:daily:" + targetDate.format(FORMATTER);
+
+        // 실제 존재하는 상품 ID로 대체하거나, 다음처럼 직접 추가
+        Product product1 = Product.create("테스트1", "브랜드A", Money.wons(10000), targetDate.minusDays(10), null, null);
+        Product product2 = Product.create("테스트2", "브랜드B", Money.wons(20000), targetDate.minusDays(10), null, null);
+        product1 = productRepository.save(product1);
+        product2 = productRepository.save(product2);
+
+        productId1 = product1.getId();
+        productId2 = product2.getId();
+
+        repository.findByProductIdAndStatDate(productId1, targetDate).ifPresent(repository::delete);
+        repository.findByProductIdAndStatDate(productId2, targetDate).ifPresent(repository::delete);
 
         redisRepository.incrementScore(redisKey, productId1, delta1);
         redisRepository.incrementScore(redisKey, productId2, delta2);
