@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.domain.coupon;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface CouponRepository {
     /**
@@ -19,4 +20,6 @@ public interface CouponRepository {
     Collection<Coupon> findAll();
 
     Collection<Coupon> findExpiredCoupons();
+
+    List<String> findAllCouponCodes();
 }

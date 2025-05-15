@@ -42,4 +42,9 @@ public class CouponRepositoryImpl implements CouponRepository {
     public Collection<Coupon> findExpiredCoupons() {
         return jpaRepository.findExpiredCoupons(LocalDateTime.now());
     }
+
+    @Override
+    public List<String> findAllCouponCodes() {
+        return jpaRepository.findAllCouponCodes();
+    }
 }
