@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.coupon;
 
+import kr.hhplus.be.server.common.vo.Money;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -64,6 +65,30 @@ class CouponIssueTest {
         assertThatThrownBy(() -> CouponIssue.createAndValidateDecreaseQuantity(userId, expiredCoupon, fixedClock))
                 .isInstanceOf(CouponException.ExpiredException.class);
     }
+
+    @Test
+    @DisplayName("정상 발급된 쿠폰은 할인 금액을 계산할 수 있다")
+    void calculateDiscount_should_return_correct_discount() {
+        Coupon coupon = Coupon.create(code, CouponType.FIXED, 2000, 10,
+                LocalDateTime.now(fixedClock).minusDays(1),
+                LocalDateTime.now(fixedClock).plusDays(1));
+        CouponIssue issue = CouponIssue.create(userId, coupon, fixedClock);
+
+        Money orderAmount = Money.wons(10000);
+        Money discount = issue.calculateDiscount(orderAmount);
+
+        assertThat(discount).isEqualTo(Money.wons(2000));
+    }
+    @Test
+    @DisplayName("유효한 쿠폰은 validateUsable() 호출 시 예외가 발생하지 않는다")
+    void validateUsable_should_not_throw_for_valid_coupon() {
+        Coupon coupon = createValidCoupon();
+        CouponIssue issue = CouponIssue.create(userId, coupon, fixedClock);
+
+        // when + then (예외 발생 없음)
+        assertThatCode(() -> issue.validateUsable(fixedClock)).doesNotThrowAnyException();
+    }
+
 
     private Coupon createValidCoupon() {
         return Coupon.create(code, CouponType.FIXED, 1000, 10,

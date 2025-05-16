@@ -14,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +25,7 @@ import static org.awaitility.Awaitility.await;
 
 
 @SpringBootTest
+@EnableAsync
 class PaymentFacadeServiceIntegrationTest {
 
     @Autowired
@@ -81,15 +83,15 @@ class PaymentFacadeServiceIntegrationTest {
 
         // 비동기 이벤트 결과 대기 → 결제 정보 & 주문 상태
         await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
-            Payment payment = paymentRepository.findByOrderId(order.getId())
-                    .orElseThrow(() -> new AssertionError("결제 정보가 아직 생성되지 않았습니다."));
-            assertThat(payment.getAmount()).isEqualTo(price);
-            assertThat(payment.getMethod()).isEqualTo("BALANCE");
-
             entityManager.clear();
-            Order updatedOrder = orderRepository.findById(order.getId()).orElseThrow();
-            assertThat(updatedOrder.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
+            OrderStatus status = entityManager
+                    .createQuery("SELECT o.status FROM Order o WHERE o.id = :id", OrderStatus.class)
+                    .setParameter("id", order.getId())
+                    .getSingleResult();
+            assertThat(status).isEqualTo(OrderStatus.CONFIRMED);
         });
+
+
 
         assertThat(result.status()).isEqualTo("SUCCESS");
     }

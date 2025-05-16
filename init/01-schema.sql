@@ -127,3 +127,6 @@ ALTER TABLE product_stock ADD CONSTRAINT uq_product_size UNIQUE (product_id, siz
 ALTER DATABASE hhplus
   CHARACTER SET = utf8mb4
   COLLATE = utf8mb4_general_ci;
+
+ALTER TABLE coupon_issue
+    ADD CONSTRAINT uq_user_coupon UNIQUE (user_id, coupon_id);

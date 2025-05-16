@@ -14,4 +14,7 @@ public interface ProductRepository{
     Optional<Product> findById(Long aLong);
 
     List<Product> findAllById(List<Long> productIds);
+
+    Optional<Long> findUnitPriceById(Long productId);
+
 }

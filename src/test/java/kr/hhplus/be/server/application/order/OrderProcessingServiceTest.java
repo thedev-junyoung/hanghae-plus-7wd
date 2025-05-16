@@ -53,7 +53,7 @@ class OrderProcessingServiceTest {
         Order order = Order.create(userId, orderItems, discountedTotal);
 
         when(orderItemCreator.create(command.items())).thenReturn(orderItems);
-        when(couponUseCase.calculateDiscountedTotal(command, orderItems)).thenReturn(discountedTotal);
+        when(couponUseCase.calculateDiscountedTotal(ApplyDiscountCommand.of(command.userId(),command.couponCode(),orderItems))).thenReturn(discountedTotal);
         when(orderService.createOrder(userId, orderItems, discountedTotal)).thenReturn(order);
 
         // when
@@ -64,7 +64,7 @@ class OrderProcessingServiceTest {
 
         // verify flow
         verify(orderItemCreator).create(command.items());
-        verify(couponUseCase).calculateDiscountedTotal(command, orderItems);
+        verify(couponUseCase).calculateDiscountedTotal(ApplyDiscountCommand.of(command.userId(),command.couponCode(),orderItems));
         verify(orderService).createOrder(userId, orderItems, discountedTotal);
     }
 }

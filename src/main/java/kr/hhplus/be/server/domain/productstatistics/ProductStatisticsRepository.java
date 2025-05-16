@@ -49,4 +49,11 @@ public interface ProductStatisticsRepository {
      * 테스트 세팅 초기화 목적 등으로 사용.
      */
     void deleteAll();
+
+
+    /**
+     * 모든 통계 데이터를 조회한다.
+     * 테스트 시 전체 데이터 확인이나 초기화 후 상태 점검에 사용.
+     */
+    List<ProductStatistics> findAll();
 }
