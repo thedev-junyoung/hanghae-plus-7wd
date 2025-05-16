@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.application.payment;
 
-import kr.hhplus.be.server.application.order.OrderConfirmRequestedEvent;
+import kr.hhplus.be.server.application.order.OrderStateChangeEvent;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class PaymentService implements PaymentUseCase {
         log.info("[비즈니스 로직 끝] 결제 완료, paymentId={}", payment.getId());
 
         // 주문 상태 변경 이벤트 발행
-        eventPublisher.publishEvent(new OrderConfirmRequestedEvent(command.orderId()));
+        eventPublisher.publishEvent(new OrderStateChangeEvent(command.orderId()));
         return payment;
     }
 

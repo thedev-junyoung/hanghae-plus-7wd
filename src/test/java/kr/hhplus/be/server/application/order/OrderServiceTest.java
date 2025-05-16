@@ -1,10 +1,12 @@
 package kr.hhplus.be.server.application.order;
 
+import kr.hhplus.be.server.application.productstatistics.RecordProductSalesEvent;
 import kr.hhplus.be.server.common.vo.Money;
 import kr.hhplus.be.server.domain.order.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,11 +19,13 @@ class OrderServiceTest {
 
     private OrderRepository orderRepository;
     private OrderService orderService;
+    private ApplicationEventPublisher eventPublisher;
 
     @BeforeEach
     void setUp() {
         orderRepository = mock(OrderRepository.class);
-        orderService = new OrderService(orderRepository);
+        eventPublisher = mock(ApplicationEventPublisher.class);
+        orderService = new OrderService(orderRepository, eventPublisher);
     }
 
     @Test
@@ -86,5 +90,23 @@ class OrderServiceTest {
         // then
         verify(order).markConfirmed();
         verify(orderRepository).save(order);
+    }
+
+
+    @Test
+    @DisplayName("주문을 CONFIRMED 상태로 변경하고 상품 판매 이벤트를 발행한다")
+    void confirmOrder_success() {
+        // given
+        String orderId = UUID.randomUUID().toString();
+        Order order = mock(Order.class);
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        // when
+        orderService.confirmOrder(orderId);
+
+        // then
+        verify(order).markConfirmed();
+        verify(orderRepository).save(order);
+        verify(eventPublisher).publishEvent(any(RecordProductSalesEvent.class));
     }
 }

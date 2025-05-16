@@ -62,8 +62,11 @@ public enum ErrorCode {
 
     INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "유효하지 않은 파라미터입니다."),
 
-    TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "요청이 너무 많습니다.")
+    TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "요청이 너무 많습니다."),
 
+
+    COUPON_NOT_APPLICABLE(HttpStatus.UNPROCESSABLE_ENTITY, "쿠폰이 적용되지 않습니다."),
+    DUPLICATE_REQUEST(HttpStatus.CONFLICT, "중복된 요청입니다."),
 
     ;
 

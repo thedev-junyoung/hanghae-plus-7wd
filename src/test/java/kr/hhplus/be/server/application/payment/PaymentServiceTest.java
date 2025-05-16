@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.application.payment;
 
-import kr.hhplus.be.server.application.order.OrderConfirmRequestedEvent;
+import kr.hhplus.be.server.application.order.OrderStateChangeEvent;
 import kr.hhplus.be.server.common.vo.Money;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
@@ -40,7 +40,7 @@ class PaymentServiceTest {
 
         // then
         verify(paymentRepository, times(1)).save(any(Payment.class));
-        verify(eventPublisher).publishEvent(any(OrderConfirmRequestedEvent.class));
+        verify(eventPublisher).publishEvent(any(OrderStateChangeEvent.class));
 
         assertThat(payment).isNotNull();
         assertThat(payment.getOrderId()).isEqualTo("order-123");
