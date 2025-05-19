@@ -15,6 +15,8 @@ public class PaymentFacadeService {
     private final PaymentUseCase paymentUseCase;
 
 
+
+    // TODO: 잔액 차감, 결제 성공의 로직이 실패시 이벤트 핸들러로 보상 트랜잭션 처리 작업
     @DistributedLock(key = "#command.orderId", prefix = "payment:order:")
     public PaymentResult requestPayment(RequestPaymentCommand command) {
         /*
