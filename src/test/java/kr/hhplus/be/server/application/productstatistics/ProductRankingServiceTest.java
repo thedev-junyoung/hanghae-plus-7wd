@@ -26,7 +26,7 @@ class ProductRankingServiceTest {
         weekly = mock(ProductRankingStrategy.class);
         monthly = mock(ProductRankingStrategy.class);
         productRankRedisRepository = mock(ProductRankRedisRepository.class);
-        service = new ProductRankingService(List.of(daily, weekly, monthly), productRankRedisRepository);
+        service = new ProductRankingService(daily,weekly,monthly,productRankRedisRepository);
     }
 
     @Test
@@ -49,7 +49,7 @@ class ProductRankingServiceTest {
     @DisplayName("record 메서드가 호출되면 전략이 없을 경우에도 예외가 발생하지 않는다.")
     void record_should_work_even_if_no_strategies() {
         // given
-        ProductRankingService emptyService = new ProductRankingService(List.of(), productRankRedisRepository);
+        ProductRankingService emptyService = new ProductRankingService(daily, weekly, monthly, productRankRedisRepository);
 
         // when
         emptyService.record(1L, 10);

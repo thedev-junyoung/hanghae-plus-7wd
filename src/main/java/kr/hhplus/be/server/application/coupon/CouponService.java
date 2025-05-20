@@ -104,7 +104,9 @@ public class CouponService implements CouponUseCase {
     }
 
     public List<String> findAllCouponCodes() {
-        return couponRepository.findAllCouponCodes();
+        return couponRepository.findAll().stream()
+                .map(Coupon::getCode)
+                .toList();
     }
 
 

@@ -121,7 +121,6 @@ class CouponServiceTest {
         given(couponRepository.findByCode(couponCode)).willReturn(Optional.of(soldOutCoupon));
 
 
-
         assertThrows(CouponException.AlreadyExhaustedException.class, () ->
                 couponService.issueLimitedCoupon(new IssueLimitedCouponCommand(userId, couponCode, null))
         );
@@ -168,16 +167,17 @@ class CouponServiceTest {
         Coupon coupon1 = createValidCoupon("WELCOME10");
         Coupon coupon2 = createValidCoupon("FLAT5000");
 
-        given(couponRepository.findAllCouponCodes()).willReturn(List.of(coupon1.getCode(), coupon2.getCode()));
+        given(couponRepository.findAll()).willReturn(List.of(coupon1, coupon2));
 
         // when
         List<String> couponList = couponService.findAllCouponCodes();
 
         // then
-        verify(couponRepository).findAllCouponCodes();
+        verify(couponRepository).findAll();
         assertThat(couponList)
                 .containsExactlyInAnyOrder("WELCOME10", "FLAT5000");
     }
+
 
     private Coupon createValidCoupon() {
         LocalDateTime now = LocalDateTime.now(fixedClock);

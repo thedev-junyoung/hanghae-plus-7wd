@@ -4,6 +4,7 @@ import kr.hhplus.be.server.application.productstatistics.strategy.DailyRankingSt
 import kr.hhplus.be.server.application.productstatistics.strategy.MonthlyRankingStrategy;
 import kr.hhplus.be.server.application.productstatistics.strategy.WeeklyRankingStrategy;
 import kr.hhplus.be.server.infrastructure.redis.ProductRankRedisRepository;
+import kr.hhplus.be.server.infrastructure.redis.RedisScriptExecutor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import static org.mockito.Mockito.*;
 
@@ -28,18 +30,18 @@ class ProductRankingServiceIntegrationTest {
         }
 
         @Bean
-        public DailyRankingStrategy daily(ProductRankRedisRepository redis) {
-            return spy(new DailyRankingStrategy(redis));
+        public DailyRankingStrategy daily(ProductRankRedisRepository redis, RedisScriptExecutor redisScriptExecutor) {
+            return spy(new DailyRankingStrategy(redis, redisScriptExecutor));
         }
 
         @Bean
-        public WeeklyRankingStrategy weekly(ProductRankRedisRepository redis) {
-            return spy(new WeeklyRankingStrategy(redis));
+        public WeeklyRankingStrategy weekly(ProductRankRedisRepository redis, RedisScriptExecutor redisScriptExecutor) {
+            return spy(new WeeklyRankingStrategy(redis, redisScriptExecutor));
         }
 
         @Bean
-        public MonthlyRankingStrategy monthly(ProductRankRedisRepository redis) {
-            return spy(new MonthlyRankingStrategy(redis));
+        public MonthlyRankingStrategy monthly(ProductRankRedisRepository redis, RedisScriptExecutor redisScriptExecutor) {
+            return spy(new MonthlyRankingStrategy(redis, redisScriptExecutor));
         }
     }
 

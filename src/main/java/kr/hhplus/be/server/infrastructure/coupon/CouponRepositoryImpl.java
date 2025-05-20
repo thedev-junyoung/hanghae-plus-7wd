@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -43,8 +42,4 @@ public class CouponRepositoryImpl implements CouponRepository {
         return jpaRepository.findExpiredCoupons(LocalDateTime.now());
     }
 
-    @Override
-    public List<String> findAllCouponCodes() {
-        return jpaRepository.findAllCouponCodes();
-    }
 }

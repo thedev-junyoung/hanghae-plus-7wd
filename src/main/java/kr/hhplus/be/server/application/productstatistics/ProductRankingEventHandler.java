@@ -23,11 +23,22 @@ public class ProductRankingEventHandler {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(RecordProductSalesEvent event) {
         log.info("[Product] 상품 판매 기록 이벤트 수신 - orderId={}", event.orderId());
+
         Order order = orderRepository.findById(event.orderId())
                 .orElseThrow(() -> new OrderException.NotFoundException(event.orderId()));
-        for (OrderItem item : order.getItems()) {
-            rankingService.record(item.getProductId(), item.getQuantity());
+
+        try {
+            for (OrderItem item : order.getItems()) {
+                rankingService.record(item.getProductId(), item.getQuantity());
+            }
+            log.info("[Product] 상품 판매 기록 완료 - orderId={}", event.orderId());
+
+        } catch (Exception e) {
+            log.error("[Product] 상품 판매 기록 실패 - orderId={}, error={}", event.orderId(), e.getMessage());
+            for (OrderItem item : order.getItems()) {
+                rankingService.rollback(item.getProductId(), item.getQuantity());
+            }
         }
-        log.info("[Product] 상품 판매 기록 완료 - orderId={}", event.orderId());
     }
+
 }

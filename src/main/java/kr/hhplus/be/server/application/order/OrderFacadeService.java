@@ -30,9 +30,6 @@ public class OrderFacadeService {
 
         try {
             // 1. 재고 차감 (side effect)
-            // TODO : 분산락을 stockService#decrease 메서드에 적용하는 걸로 변경할 지 고민
-            //  렌코치님 의견: 락과 트랜잭션의 범위를 동일하게 맞추는게 좋음
-            //  내 의견: 락의 범위를 최소화 해야됌
             for (var item : command.items()) {
                 stockService.decrease(DecreaseStockCommand.of(item.productId(), item.size(), item.quantity()));
             }

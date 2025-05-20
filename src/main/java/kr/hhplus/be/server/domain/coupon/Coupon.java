@@ -111,10 +111,8 @@ public class Coupon {
     }
 
     public Money calculateDiscount(Money orderAmount) {
-        DiscountSpecification spec = DiscountSpecificationFactory.from(this);
-        return spec.calculateDiscount(orderAmount);
+        return type.calculateDiscount(orderAmount, discountRate);
     }
-
     static class Policy {
         public static boolean isExpired(LocalDateTime until, Clock clock) {
             return LocalDateTime.now(clock).isAfter(until);
